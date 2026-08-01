@@ -242,3 +242,8 @@ Top Keywords
 # ==========================================
 # Gradio Interface
 # ==========================================
+
+if __name__ == "__main__":
+    print("Testing search...")
+    results = search_reviews("Louis Vuitton Neverfull")
+    print(results)
