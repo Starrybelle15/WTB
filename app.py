@@ -22,7 +22,13 @@ def analyze(bag_name, review_url, review_text):
             None,
         )
 
-    summary, chart = analyze_review(review_text)
+    summary, chart = analyze_review(
+
+    review_text=review_text,
+
+    review_url=review_url
+
+)
 
     return summary, chart
 

@@ -10,6 +10,11 @@ import plotly.express as px
 from transformers import pipeline
 from keybert import KeyBERT
 
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
+import requests
+import trafilatura
 
 print("Loading AI models...")
 
@@ -58,7 +63,6 @@ def split_text(text, max_length=450):
         chunks.append(current)
 
     return chunks
-
 
 # -------------------------------------------------
 # Analyze sentiment
@@ -128,31 +132,44 @@ def extract_keywords(text):
 # -------------------------------------------------
 # Executive Summary
 # -------------------------------------------------
-
 def executive_summary(label, confidence, keywords):
 
-    summary = f"""
-Overall Sentiment
+    if len(keywords) >= 5:
+        top_keywords = ", ".join(keywords[:5])
+    else:
+        top_keywords = ", ".join(keywords)
 
-{label}
+    return f"""
+======================================
 
-Confidence
+AI BUSINESS INSIGHT REPORT
 
-{confidence}
+======================================
 
-Key Discussion Topics
+Overall Customer Sentiment
 
-{", ".join(keywords[:5])}
+{label.upper()}
+
+Confidence Score
+
+{confidence:.2f}
+
+Top Customer Discussion Topics
+
+{top_keywords}
 
 Business Insight
 
-Customers frequently discuss the topics above.
-The overall perception appears to be {label.lower()}.
+Customers generally express a {label.lower()} opinion regarding this luxury handbag.
+
+The most frequently discussed topics indicate what customers value most and what they pay the most attention to during purchase and ownership.
+
+Recommendation
+
+Luxury brands should continue monitoring customer feedback to identify recurring strengths and potential improvement areas.
+
+======================================
 """
-
-    return summary
-
-
 # -------------------------------------------------
 # Pie Chart
 # -------------------------------------------------
@@ -175,12 +192,53 @@ def sentiment_chart(results):
 
     return fig
 
+# -------------------------------------------------
+# Download Review Article
+# -------------------------------------------------
+
+def extract_from_url(url):
+    """
+    Download and extract readable text from a webpage.
+    """
+
+    try:
+
+        downloaded = trafilatura.fetch_url(url)
+
+        if downloaded is None:
+            return None
+
+        text = trafilatura.extract(downloaded)
+
+        if text is None:
+            return None
+
+        return text
+
+    except Exception:
+
+        return None
 
 # -------------------------------------------------
 # Main Engine
 # -------------------------------------------------
 
-def analyze_review(review_text):
+def analyze_review(review_text="", review_url=""):
+
+    # If URL is provided,
+    # download article automatically
+
+    if review_url.strip():
+
+        extracted = extract_from_url(review_url)
+
+        if extracted:
+
+            review_text = extracted
+
+    if len(review_text.strip()) == 0:
+
+        return "No review text found.", None
 
     results = analyze_text(review_text)
 
@@ -201,3 +259,19 @@ def analyze_review(review_text):
     chart = sentiment_chart(results)
 
     return summary, chart
+
+    def create_wordcloud(text):
+
+    wc = WordCloud(
+        width=900,
+        height=500,
+        background_color="white"
+    ).generate(text)
+
+    fig = plt.figure(figsize=(10,5))
+
+    plt.imshow(wc)
+
+    plt.axis("off")
+
+    return fig
