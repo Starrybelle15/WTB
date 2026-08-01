@@ -170,7 +170,7 @@ Generate business intelligence using Artificial Intelligence.
 
             )
 
-                        chart = gr.Plot(
+            chart = gr.Plot(
 
                 label="Sentiment Distribution"
 
