@@ -1,23 +1,25 @@
 """
 Luxury Bag Review Intelligence Platform
-Main Gradio Application
+Version 1.0
 """
 
 import gradio as gr
 from engine import analyze_review
 
-
-# ------------------------------------------------
+# -------------------------------------------------------
 # Main Function
-# ------------------------------------------------
+# -------------------------------------------------------
 
-def run_analysis(bag_name, review_text):
+def analyze(bag_name, review_url, review_text):
 
-    if not review_text.strip():
+    # Future version:
+    # if review_url is provided:
+    #     download review automatically
 
+    if review_text.strip() == "":
         return (
-            "Please paste some review text.",
-            None
+            "Please paste customer reviews or provide a review URL.",
+            None,
         )
 
     summary, chart = analyze_review(review_text)
@@ -25,9 +27,9 @@ def run_analysis(bag_name, review_text):
     return summary, chart
 
 
-# ------------------------------------------------
-# Gradio UI
-# ------------------------------------------------
+# -------------------------------------------------------
+# UI
+# -------------------------------------------------------
 
 with gr.Blocks(
     title="Luxury Bag Review Intelligence Platform"
@@ -37,56 +39,58 @@ with gr.Blocks(
         """
 # 👜 Luxury Bag Review Intelligence Platform
 
-Analyze customer opinions using Artificial Intelligence.
+### AI-powered customer review analysis for luxury handbags
 
-### Instructions
-
-1. Enter the luxury bag name.
-2. Paste customer reviews.
-3. Click Analyze.
+Analyze online reviews and generate business insights using Artificial Intelligence.
 """
     )
 
     with gr.Row():
 
-        with gr.Column():
+        with gr.Column(scale=1):
 
             bag_name = gr.Textbox(
                 label="Luxury Bag Name",
                 placeholder="Example: Louis Vuitton Neverfull MM"
             )
 
-            reviews = gr.Textbox(
+            review_url = gr.Textbox(
+                label="Review URL (Optional)",
+                placeholder="Paste a review article URL here..."
+            )
+
+            review_text = gr.Textbox(
                 label="Customer Reviews",
                 lines=15,
                 placeholder="Paste customer reviews here..."
             )
 
-            analyze = gr.Button(
-                "Analyze Reviews",
+            analyze_button = gr.Button(
+                "🔍 Analyze Reviews",
                 variant="primary"
             )
 
-        with gr.Column():
+        with gr.Column(scale=1):
 
-            summary = gr.Textbox(
-                label="Executive Summary",
-                lines=12
+            report = gr.Textbox(
+                label="AI Business Insight Report",
+                lines=15
             )
 
             chart = gr.Plot(
                 label="Sentiment Distribution"
             )
 
-    analyze.click(
-        fn=run_analysis,
+    analyze_button.click(
+        fn=analyze,
         inputs=[
             bag_name,
-            reviews
+            review_url,
+            review_text,
         ],
         outputs=[
-            summary,
-            chart
+            report,
+            chart,
         ]
     )
 
@@ -94,7 +98,7 @@ Analyze customer opinions using Artificial Intelligence.
         """
 ---
 
-### Technology Stack
+### Technology
 
 - Hugging Face Transformers
 - KeyBERT
@@ -104,7 +108,6 @@ Analyze customer opinions using Artificial Intelligence.
 Final Year Project
 """
     )
-
 
 if __name__ == "__main__":
     demo.launch()
