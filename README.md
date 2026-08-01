@@ -1,6 +1,8 @@
 # WTB - Watch the Bag
 
 🚀 FINAL PROJECT Luxury Bag Review Intelligence Platform (LBRIP)
+<img width="1692" height="921" alt="Screenshot 2026-08-01 152800" src="https://github.com/user-attachments/assets/5df98ae6-d85c-4677-85f6-447dc5edd9e0" />
+
 
 An AI-powered platform that searches public online discussions for luxury handbag reviews, analyzes customer sentiment using NLP, and presents actionable business insights.
 
