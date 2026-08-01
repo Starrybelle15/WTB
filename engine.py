@@ -261,12 +261,11 @@ def analyze_review(review_text="", review_url=""):
     return summary, chart
 
     def create_wordcloud(text):
-
-    wc = WordCloud(
-        width=900,
-        height=500,
-        background_color="white"
-    ).generate(text)
+        wc = WordCloud(
+            width=900,
+            height=500,
+            background_color="white"
+            ).generate(text)
 
     fig = plt.figure(figsize=(10,5))
 
