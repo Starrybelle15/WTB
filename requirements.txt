@@ -1,1 +1,14 @@
-
+gradio>=5.0
+transformers>=4.45
+torch
+pandas
+plotly
+duckduckgo-search
+trafilatura
+keybert
+sentence-transformers
+wordcloud
+matplotlib
+beautifulsoup4
+lxml
+requests
