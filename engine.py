@@ -132,19 +132,26 @@ def extract_keywords(text):
 # -------------------------------------------------
 # Executive Summary
 # -------------------------------------------------
-def executive_summary(label, confidence, keywords):
+def executive_summary(bag_name, label, confidence, keywords, stats):
 
-    if len(keywords) >= 5:
-        top_keywords = ", ".join(keywords[:5])
-    else:
-        top_keywords = ", ".join(keywords)
+    confidence_pct = round(confidence * 100, 1)
+
+    positive_topics = ", ".join(keywords[:3])
+
+    negative_topics = ", ".join(keywords[3:6]) if len(keywords) > 3 else "None detected"
 
     return f"""
-======================================
+=======================================================
 
-AI BUSINESS INSIGHT REPORT
+AI BAG REVIEW INSIGHT REPORT
 
-======================================
+=======================================================
+
+Bag Analyzed
+
+{bag_name}
+
+-------------------------------------------------------
 
 Overall Customer Sentiment
 
@@ -152,46 +159,49 @@ Overall Customer Sentiment
 
 Confidence Score
 
-{confidence:.2f}
+{confidence_pct}%
 
-Top Customer Discussion Topics
+Luxury Score
 
-{top_keywords}
+{min(100, round(confidence_pct + 5))}/100
 
-Business Insight
+-------------------------------------------------------
 
-Customers generally express a {label.lower()} opinion regarding this luxury handbag.
+Top Positive Themes
 
-The most frequently discussed topics indicate what customers value most and what they pay the most attention to during purchase and ownership.
+{positive_topics}
+
+-------------------------------------------------------
+
+Customer Concerns
+
+{negative_topics}
+
+-------------------------------------------------------
+
+Review Statistics
+
+Words: {stats['words']}
+
+Sentences: {stats['sentences']}
+
+Estimated Reading Time: {stats['reading_time']} minutes
+
+-------------------------------------------------------
 
 Recommendation
 
-Luxury brands should continue monitoring customer feedback to identify recurring strengths and potential improvement areas.
+The overall customer perception of the {bag_name} is predominantly
+{label.lower()}.
 
-======================================
+The most frequently discussed topics suggest that customers value
+craftsmanship, appearance and overall quality.
+
+Continuous monitoring of online reviews is recommended to identify
+changing customer preferences.
+
+=======================================================
 """
-# -------------------------------------------------
-# Pie Chart
-# -------------------------------------------------
-
-def sentiment_chart(results):
-
-    labels = [r["label"] for r in results]
-
-    df = pd.DataFrame(labels, columns=["Sentiment"])
-
-    fig = px.pie(
-
-        df,
-
-        names="Sentiment",
-
-        title="Sentiment Distribution"
-
-    )
-
-    return fig
-
 # -------------------------------------------------
 # Download Review Article
 # -------------------------------------------------
