@@ -1,249 +1,110 @@
-# ==========================================
-# Imports
-# ==========================================
-import warnings
-warnings.filterwarnings("ignore")
-
-import pandas as pd
-import plotly.express as px
-import gradio as gr
-
-from transformers import pipeline
-from duckduckgo_search import DDGS
-import trafilatura
-
-from keybert import KeyBERT
-
-# ==========================================
-# AI Models
-# ==========================================
-
-print("Loading AI models...")
-
-sentiment_pipeline = pipeline(
-    "sentiment-analysis",
-    model="cardiffnlp/twitter-roberta-base-sentiment-latest"
-)
-
-kw_model = KeyBERT()
-
-print("AI models loaded successfully.")
-sentiment_pipeline = pipeline(
-    "sentiment-analysis",
-    model="cardiffnlp/twitter-roberta-base-sentiment-latest"
-)
-# ==========================================
-# Search Functions
-# ==========================================
-def search_reviews(query, max_results=10):
-    """
-    Search for DuckDuckGo for public review pages related to a luxury bag.
-    """
-    results = []
-
-    with DDGS() as ddgs:
-      for item in ddgs.text(
-            f"{query} review",
-            max_results=max_results
-        ):
-
-            results.append(item)
-
-    return results
-  
-        return list(
-            ddgs.text(
-                f"{query} review",
-                max_results=max_results
-            )
-        )
-# ==========================================
-# Text Extraction
-# ==========================================
-def extract_text(url):
-    """
-    Download and extract readable text from a webpage.
-    """
-     try:
-
-        downloaded = trafilatura.fetch_url(url)
-
-        if downloaded is None:
-            return ""
-
-        text = trafilatura.extract(downloaded)
-
-        if text is None:
-            return ""
-
-        return text
-
-    except Exception:
-
-        return ""
-      
-# ==========================================
-# Sentiment Analysis
-# ==========================================
-def analyze_sentiment(text):
-
-    if len(text.strip()) == 0:
-
-        return None
-
-    result = sentiment_pipeline(text[:512])[0]
-
-    return result["label"], float(result["score"])
-  
-# ==========================================
-# Keyword Extraction
-# ==========================================
-kw_model = KeyBERT()
-
-def extract_keywords(text):
-
-    if len(text.strip()) < 50:
-
-        return []
-
-    keywords = kw_model.extract_keywords(
-
-        text,
-
-        keyphrase_ngram_range=(1,2),
-
-        stop_words="english",
-
-        top_n=10
-
-    )
-
-    return [k[0] for k in keywords]
-# ==========================================
-# Summary Generation
-# ==========================================
-def build_summary(df):
-
-    total = len(df)
-
-    positive = len(df[df["label"]=="positive"])
-
-    neutral = len(df[df["label"]=="neutral"])
-
-    negative = len(df[df["label"]=="negative"])
-
-    summary = f"""
-Reviews analyzed : {total}
-
-Positive : {positive}
-
-Neutral : {neutral}
-
-Negative : {negative}
-
-Overall customer opinion is mostly
-{df['label'].mode()[0].upper()}.
+"""
+Luxury Bag Review Intelligence Platform
+Main Gradio Application
 """
 
-    return summary
-# ==========================================
-# Charts
-# ==========================================
-def build_chart(df):
+import gradio as gr
+from engine import analyze_review
 
-    counts = df["label"].value_counts().reset_index()
 
-    counts.columns = ["Sentiment","Count"]
+# ------------------------------------------------
+# Main Function
+# ------------------------------------------------
 
-    fig = px.pie(
+def run_analysis(bag_name, review_text):
 
-        counts,
-
-        values="Count",
-
-        names="Sentiment",
-
-        title="Sentiment Distribution"
-
-    )
-
-    return fig
-# ==========================================
-# Main Analysis Function
-# ==========================================
-def analyze_bag(bag_name):
-
-    search_results = search_reviews(bag_name)
-
-    texts = []
-
-    sentiments = []
-
-    for item in search_results:
-
-        url = item.get("href") or item.get("url")
-
-        if not url:
-
-            continue
-
-        text = extract_text(url)
-
-        if len(text) < 300:
-
-            continue
-
-        sentiment = analyze_sentiment(text)
-
-        if sentiment is None:
-
-            continue
-
-        texts.append(text)
-
-        sentiments.append(sentiment)
-
-    if len(sentiments) == 0:
+    if not review_text.strip():
 
         return (
-
-            "No review text found.",
-
-            None,
-
-            ""
-
+            "Please paste some review text.",
+            None
         )
 
-    df = pd.DataFrame(sentiments)
+    summary, chart = analyze_review(review_text)
 
-    chart = build_chart(df)
+    return summary, chart
 
-    keywords = extract_keywords(" ".join(texts))
 
-    summary = build_summary(df)
+# ------------------------------------------------
+# Gradio UI
+# ------------------------------------------------
 
-    output = f"""
+with gr.Blocks(
+    title="Luxury Bag Review Intelligence Platform"
+) as demo:
 
-Reviews Found
+    gr.Markdown(
+        """
+# 👜 Luxury Bag Review Intelligence Platform
 
-{len(df)}
+Analyze customer opinions using Artificial Intelligence.
 
-Top Keywords
+### Instructions
 
-{', '.join(keywords)}
-
-{summary}
-
+1. Enter the luxury bag name.
+2. Paste customer reviews.
+3. Click Analyze.
 """
+    )
 
-    return output, chart, df
+    with gr.Row():
 
-# ==========================================
-# Gradio Interface
-# ==========================================
+        with gr.Column():
+
+            bag_name = gr.Textbox(
+                label="Luxury Bag Name",
+                placeholder="Example: Louis Vuitton Neverfull MM"
+            )
+
+            reviews = gr.Textbox(
+                label="Customer Reviews",
+                lines=15,
+                placeholder="Paste customer reviews here..."
+            )
+
+            analyze = gr.Button(
+                "Analyze Reviews",
+                variant="primary"
+            )
+
+        with gr.Column():
+
+            summary = gr.Textbox(
+                label="Executive Summary",
+                lines=12
+            )
+
+            chart = gr.Plot(
+                label="Sentiment Distribution"
+            )
+
+    analyze.click(
+        fn=run_analysis,
+        inputs=[
+            bag_name,
+            reviews
+        ],
+        outputs=[
+            summary,
+            chart
+        ]
+    )
+
+    gr.Markdown(
+        """
+---
+
+### Technology Stack
+
+- Hugging Face Transformers
+- KeyBERT
+- Plotly
+- Gradio
+
+Final Year Project
+"""
+    )
+
 
 if __name__ == "__main__":
-    print("Testing search...")
-    results = search_reviews("Louis Vuitton Neverfull")
-    print(results)
+    demo.launch()
